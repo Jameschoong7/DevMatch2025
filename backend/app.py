@@ -9,7 +9,7 @@ app = Flask(__name__)
 def index():
     return "GreenChain Flask backend is running" 
 
-
+#Other endpoint (claim_token, etc..)
 
 
 if __name__=="__main__":
