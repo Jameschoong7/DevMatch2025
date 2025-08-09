@@ -10,7 +10,7 @@ let donationCredits = 0;
 // Check if we're on a specific page
 const currentPage = window.location.pathname;
 
-// Helper function to safely get elements
+// function to get elements
 function getElement(id) {
     const element = document.getElementById(id);
     if (!element) {
@@ -19,14 +19,14 @@ function getElement(id) {
     return element;
 }
 
-// Helper function to save wallet connection to localStorage
+// function to save wallet connection to localStorage
 function saveWalletConnection(walletAddress) {
     localStorage.setItem('greenchain_wallet_address', walletAddress);
     localStorage.setItem('greenchain_connected', 'true');
     localStorage.setItem('greenchain_connection_time', Date.now().toString());
 }
 
-// Helper function to load wallet connection from localStorage
+// function to load wallet connection from localStorage
 function loadWalletConnection() {
     const savedWallet = localStorage.getItem('greenchain_wallet_address');
     const isConnected = localStorage.getItem('greenchain_connected') === 'true';
@@ -47,7 +47,7 @@ function loadWalletConnection() {
     return null;
 }
 
-// Helper function to clear wallet connection
+// function to clear wallet connection
 function clearWalletConnection() {
     localStorage.removeItem('greenchain_wallet_address');
     localStorage.removeItem('greenchain_connected');
@@ -134,6 +134,48 @@ async function autoConnectWallet() {
     return false;
 }
 
+// Reset UI when wallet becomes disconnected 
+function resetUiForDisconnectedWallet() {
+    if (currentPage === '/recycle' || currentPage === '/donation') {
+        const walletInfoElement = getElement("walletInfo");
+        if (walletInfoElement) {
+            walletInfoElement.style.display = "none";
+        }
+        const tokenBalanceElement = getElement("token_balance");
+        if (tokenBalanceElement) {
+            tokenBalanceElement.innerText = "Please connect wallet first";
+        }
+        if (currentPage === '/donation') {
+            const donationOptionsElement = getElement("donation-options");
+            if (donationOptionsElement) {
+                donationOptionsElement.innerHTML = "";
+            }
+            const donationSection = document.getElementById('donation-section');
+            if (donationSection) {
+                donationSection.style.display = 'none';
+            }
+        }
+    }
+}
+
+// listen for localStorage changes from other tabs/windows
+window.addEventListener('storage', (event) => {
+    if (event.key === 'greenchain_wallet_address' || event.key === 'greenchain_connected' || event.key === null) {
+        const savedWallet = loadWalletConnection();
+        if (savedWallet) {
+            currentWalletAddress = savedWallet;
+            
+            updateWalletDisplay();
+            checkTokenBalance();
+        } else {
+            currentWalletAddress = null;
+            currentProvider = null;
+            currentSigner = null;
+            resetUiForDisconnectedWallet();
+        }
+    }
+});
+
 // QR Code Scanner (only for recycle page)
 let scanner = null;
 
@@ -164,7 +206,7 @@ async function initializeQRScanner() {
             return;
         }
         
-        // Initialize scanner with better error handling
+        // Initialize scanner 
         scanner = new Html5QrcodeScanner('reader', {
             qrbox: {
                 width: 250,
@@ -223,7 +265,7 @@ async function requestCameraPermission() {
 }
 
 function onScanSuccess(result) {
-    console.log("QR Code scanned: ", result);
+ 
     
     // Stop scanning immediately
     if (scanner) {
@@ -250,11 +292,10 @@ function onScanSuccess(result) {
 }
 
 function onScanError(error) {
-    // Only log errors, don't show them to user unless they're critical
-    console.error("QR Code scan error: ", error);
+   
     
-    // Don't show error messages for normal scanning attempts
-    // Only show errors for critical issues
+  
+    // Errors for critical issues
     if (error.message && error.message.includes('IndexSizeError')) {
         // This is a canvas error, try to reinitialize
         setTimeout(() => {
@@ -343,21 +384,21 @@ async function validateAndMintTokens(qrCode) {
             if (resultElement) {
                 resultElement.innerHTML = 
                 `<div class="alert alert-success">
-                    <h3>🎉 Success!</h3>
+                    <h3>Success!</h3>
                     <p>${data.message}</p>
                     <p><strong>Tokens Minted:</strong> ${data.tokens_minted}</p>
                     <p><strong>New Balance:</strong> ${data.new_balance} tokens</p>
                     <p><strong>Transaction Hash:</strong> ${data.transaction_hash}</p>
                     <button onclick="resetScanner()" class="btn btn-primary">Scan Another QR Code</button>
                     
-                    <p class="mt-2"><small class="text-success">♻️ Keep recycling! You can scan the same QR code again for more tokens.</small></p>
+                    <p class="mt-2"><small class="text-success">Keep recycling! You can scan the same QR code again for more tokens.</small></p>
                 </div>`;
             }
         } else {
             if (resultElement) {
                 resultElement.innerHTML = 
                 `<div class="alert alert-danger">
-                    <h3>❌ Error</h3>
+                    <h3>Error</h3>
                     <p>${data.error}</p>
                     <button onclick="resetScanner()" class="btn btn-primary">Try Again</button>
                 </div>`;
@@ -368,7 +409,7 @@ async function validateAndMintTokens(qrCode) {
         if (resultElement) {
             resultElement.innerHTML = 
             `<div class="alert alert-danger">
-                <h3>❌ Network Error</h3>
+                <h3>Network Error</h3>
                 <p>Failed to connect to server: ${error.message}</p>
                 <button onclick="resetScanner()" class="btn btn-primary">Try Again</button>
             </div>`;
@@ -471,7 +512,7 @@ async function showDonationOptions() {
                             <small class="text-muted">Available credits: ${donationCredits}</small>
                         </div>
                         <button onclick="donateToNGO()" class="btn btn-donate w-100 mt-3">
-                            <img src="https://img.icons8.com/color/16/000000/heart.png" alt="Donate" style="margin-right: 5px;">
+                                        
                             Donate
                         </button>
                     </div>
@@ -490,7 +531,7 @@ async function convertTokens() {
     const amount = parseInt(tokenAmountElement.value);
     
     if (amount > tokenBalance) {
-        alert("❌ Not enough tokens! You only have " + tokenBalance + " tokens.");
+        alert("Not enough tokens! You only have " + tokenBalance + " tokens.");
         return;
     }
     
@@ -514,15 +555,15 @@ async function convertTokens() {
             donationCredits = data.new_credits_balance;
             updateTokenBalanceDisplay();
             
-            alert(`✅ ${data.message}`);
+            alert(`${data.message}`);
             
             // Show donation options after conversion
             showDonationOptions();
         } else {
-            alert(`❌ Error: ${data.error}`);
+            alert(`Error: ${data.error}`);
         }
     } catch (error) {
-        alert(`❌ Network Error: ${error.message}`);
+        alert(`Network Error: ${error.message}`);
     }
 }
 
@@ -536,7 +577,7 @@ async function donateToNGO() {
     const amount = parseInt(donationAmountElement.value);
     
     if (amount > donationCredits) {
-        alert("❌ Not enough donation credits! You only have " + donationCredits + " credits.");
+        alert("Not enough donation credits! You only have " + donationCredits + " credits.");
         return;
     }
     
@@ -560,15 +601,15 @@ async function donateToNGO() {
             donationCredits = data.new_credits_balance;
             updateTokenBalanceDisplay();
             
-            alert(`✅ ${data.message}`);
+            alert(`${data.message}`);
             
             // Refresh donation options to show updated balances
             showDonationOptions();
         } else {
-            alert(`❌ Error: ${data.error}`);
+            alert(`Error: ${data.error}`);
         }
     } catch (error) {
-        alert(`❌ Network Error: ${error.message}`);
+        alert(`Network Error: ${error.message}`);
     }
 }
 
@@ -586,10 +627,10 @@ window.checkTokenBalance = checkTokenBalance;
 window.onload = async function () {
     console.log("Page loaded:", currentPage);
     
-    // Try to auto-connect wallet first
+    // auto-connect wallet first
     const autoConnected = await autoConnectWallet();
     
-    // Add event listeners based on current page
+    // Add event listeners
     if (currentPage === '/login') {
         const btnConnect = getElement("btnConnect");
         if (btnConnect) {
@@ -600,26 +641,34 @@ window.onload = async function () {
         if (btnDisplayBalance) {
             btnDisplayBalance.addEventListener("click", checkTokenBalance);
         }
-        // Initialize QR scanner if wallet is already connected
-        if (autoConnected || (typeof window.ethereum !== 'undefined' && window.ethereum.selectedAddress)) {
-            if (!autoConnected) {
-                connect();
-            }
+        
+        if (autoConnected) {
+           
+        } else {
+            // ensure disconnected UI
+            resetUiForDisconnectedWallet();
         }
     } else if (currentPage === '/donation') {
         const btnDisplayBalance = getElement("btnDisplayBalance");
         if (btnDisplayBalance) {
             btnDisplayBalance.addEventListener("click", checkTokenBalance);
         }
-        // Check if wallet is already connected and auto-refresh balance
-        if (autoConnected || (typeof window.ethereum !== 'undefined' && window.ethereum.selectedAddress)) {
-            if (!autoConnected) {
-                connect();
-            }
-            // Auto-refresh balance when switching to donation page
+        
+        if (autoConnected) {
             setTimeout(() => {
                 checkTokenBalance();
             }, 500);
+        } else {
+            const saved = loadWalletConnection();
+            if (saved) {
+                currentWalletAddress = saved;
+                updateWalletDisplay();
+                setTimeout(() => {
+                    checkTokenBalance();
+                }, 500);
+            } else {
+                resetUiForDisconnectedWallet();
+            }
         }
     }
 }; 

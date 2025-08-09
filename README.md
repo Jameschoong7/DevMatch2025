@@ -1,8 +1,8 @@
-# 🌱 GreenChain - Recycle & Donate Platform
+# GreenChain - Recycle & Donate Platform
 
 A blockchain-based platform that rewards users for recycling by minting tokens, which can then be converted to donation credits and donated to approved NGOs.
 
-## 🎯 Complete User Flow
+## User Flow
 
 1. **User scans a QR code** at a recycling center
 2. **QR is validated** by the backend (Flask)
@@ -11,13 +11,13 @@ A blockchain-based platform that rewards users for recycling by minting tokens, 
 5. **User donates to a registered NGO**
 6. **All steps are recorded on blockchain** for transparency
 
-## 📋 QR Code Format
+## QR Code Format
 
 QR codes must follow the format: `greenchain-claim-{unique_id}`
 
 Example: `greenchain-claim-abc12345`
 
-## 🚀 Quick Start
+## Quick Start
 
 ### Prerequisites
 
@@ -84,59 +84,42 @@ Example: `greenchain-claim-abc12345`
 
 ```
 DevMatch2025/
+├── abi.json
 ├── backend/
-│   ├── app.py              # Flask backend with API endpoints
-│   ├── blockchain.py       # Web3 integration and smart contract calls
-│   ├── qr_utils.py         # QR code validation utilities
-│   ├── qr_generator.py     # Test QR code generator
-│   ├── static/             # Static files (JS, CSS)
-│   ├── templates/          # Flask templates
-│   └── qr_codes/           # Generated test QR codes
+│ ├── app.py               # Flask app; serves static from ../src
+│ ├── blockchain.py        # Web3/contract integration
+│ ├── qr_utils.py          # QR code validation
+│ ├── qr_generator.py      # Test QR generator
+│ ├── qr_codes/            # Generated test QR images
+│ │ ├── test_qr_1_531ffe6b.png
+│ │ ├── test_qr_2_8bfa09bc.png
+│ │ ├── test_qr_3_766934fc.png
+│ │ ├── test_qr_4_f7ca1262.png
+│ │ └── test_qr_5_61b47c80.png
+│ └── templates/           # Flask templates
+│ ├── index.html
+│ ├── login.html
+│ ├── recycle.html
+│ ├── donation.html
+│ └── ngo_transparency.html
 ├── contract/
-│   └── GreenChain.sol      # Smart contract
-├── abi.json               # Contract ABI
-├── requirements.txt       # Python dependencies
-└── README.md             # Project documentation
+│ └── GreenChain.sol       # Smart contract
+├── src/                   # Static assets served by Flask
+│ ├── main.js
+│ ├── donation.png
+│ ├── greenchain.png
+│ ├── logout.png
+│ ├── transparency.png
+│ ├── triangular-arrows-sign-for-recycle.png
+│ └── user.png
+├── BUSINESS_MODEL_ANALYSIS.md
+├── SYSTEM_ANALYSIS_SUMMARY.md
+├── deployment.md
+├── requirements.txt
+└── README.md
 ```
 
-## 🔧 API Endpoints
 
-### POST `/api/validate-qr`
-Validates QR code and mints tokens if valid.
-
-**Request:**
-```json
-{
-  "qr_code": "greenchain-claim-abc12345",
-  "wallet_address": "0x..."
-}
-```
-
-**Response:**
-```json
-{
-  "success": true,
-  "message": "Tokens minted successfully! Keep recycling!",
-  "transaction_hash": "0x...",
-  "tokens_minted": 1
-}
-```
-
-### POST `/api/convert-tokens`
-Converts tokens to donation credits.
-
-### POST `/api/donate`
-Donates credits to an NGO.
-
-### GET `/api/ngos`
-Returns list of approved NGOs.
-
-## 🔒 Smart Contract Functions
-
-- `claimToken(uint256 amount)` - Mint tokens to user
-- `convertToDonation(uint256 amount)` - Convert tokens to donation credits
-- `donateToNGO(address ngo, uint256 amount)` - Donate to approved NGO
-- `addNGO(address ngo)` - Add approved NGO (owner only)
 
 ## 🎨 Features
 
@@ -147,7 +130,6 @@ Returns list of approved NGOs.
 - ✅ NGO donation system
 - ✅ Real-time token balance tracking
 - ✅ Transaction transparency on blockchain
-- ✅ Modern UI with Bootstrap
 - ✅ MetaMask wallet integration
 - ✅ Real-time QR code scanning
 - ✅ Manual QR code input fallback
@@ -161,30 +143,14 @@ Returns list of approved NGOs.
 
 2. **"Failed to mint tokens"**
    - Check your `.env` configuration
-   - Ensure you have sufficient gas fees
+   - Ensure sufficient gas fees
    - Verify contract address is correct
 
 3. **MetaMask connection issues**
    - Ensure MetaMask is installed and unlocked
-   - Check if you're on the correct network
+   - Check network
 
 4. **Camera not working**
    - Grant camera permissions
    - Use manual QR code input as fallback
 
-## 🔮 Future Enhancements
-
-- [ ] User authentication system
-- [ ] Recycling center management portal
-- [ ] Token marketplace
-- [ ] Mobile app development
-- [ ] Advanced analytics dashboard
-- [ ] Multi-chain support
-
-## 📄 License
-
-This project is part of DevMatch2025 competition.
-
----
-
-**🌱 Make the world greener, one recycle at a time!**

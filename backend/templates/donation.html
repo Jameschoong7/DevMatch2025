@@ -154,7 +154,7 @@
                               </ul>
                         </div>
                         
-                        <!-- Login Button (shown when wallet not connected) -->
+                        <!-- Login Button -->
                         <div id="loginButton" class="nav-item">
                               <a class="nav-link" href="#" onclick="connectWallet()">
                                     <img src="{{ url_for('static', filename='user.png') }}" alt="Login" style="margin-right: 5px;width: 20px; height: 20px;">
@@ -241,21 +241,19 @@
                                     </div>
 
                                     <!-- Donation Section -->
-                                    <div id="donation-section" class="donation-section" style="display: none;">
+                                    <div id="donation-section" class="donation-section">
                                           <h4>
                                                 <img src="{{ url_for('static', filename='donation.png') }}" alt="Donation" style="margin-right: 5px;width: 20px;height: 20px;">
                                                 Donate to NGOs
                                           </h4>
                                           <p class="text-muted">Choose an NGO and donate your credits to make a positive impact. All donations are transparently recorded on the blockchain.</p>
                                           
-                                          <div id="donation-options">
-                                                <!-- Donation options will be loaded here when credits are available -->
-                                          </div>
+                                           <div id="donation-options"></div>
                                     </div>
 
                                   
 
-                                    <!-- Back to Recycle -->
+                                    <!-- Back to Recycle tab-->
                                     <div class="text-center mt-4">
                                           <a href="/recycle" class="btn btn-secondary btn-lg">
                                                 <img src="{{ url_for('static', filename='triangular-arrows-sign-for-recycle.png') }}" alt="Recycle" style="margin-right: 5px; width: 20px; height: 20px;">
@@ -280,6 +278,8 @@
                   // Auto-refresh balance when page loads
                   setTimeout(() => {
                         loadUserBalance();
+                        // Always render donation options regardless of credits
+                        loadDonationOptions();
                   }, 500);
             });
 
@@ -292,20 +292,15 @@
                               if (data.success) {
                                     document.getElementById('token_balance').textContent = `${data.token_balance} Tokens`;
                                     document.getElementById('availableTokens').textContent = data.token_balance;
-                                    
-                                    // Show donation section only if credits are available
-                                    if (data.credits_balance > 0) {
-                                          document.getElementById('donation-section').style.display = 'block';
-                                          loadDonationOptions();
-                                    } else {
-                                          document.getElementById('donation-section').style.display = 'none';
-                                    }
+                                    // Always render donation options regardless of credits
+                                    document.getElementById('donation-section').style.display = 'block';
+                                    loadDonationOptions();
                               }
                         })
                         .catch(error => {
                               console.error('Error loading balance:', error);
                               document.getElementById('token_balance').textContent = 'Error loading balance';
-                              document.getElementById('donation-section').style.display = 'none';
+                              // Keep donation section visible even on error
                         });
             }
 
@@ -326,6 +321,10 @@
             function displayUserTransactions() {
                   const container = document.getElementById('transaction-history');
                   
+                  if (!container) {
+                        return;
+                  }
+                  
                   if (userTransactions.length === 0) {
                         container.innerHTML = `
                               <p class="text-muted">
@@ -336,7 +335,7 @@
                         return;
                   }
 
-                  // Filter transactions for current user (if wallet is connected)
+                  // Filter transactions for current user
                   let filteredTransactions = userTransactions;
                   if (currentWallet) {
                         filteredTransactions = userTransactions.filter(tx => 
@@ -407,7 +406,7 @@
 
             function convertTokens() {
                   const amount = document.getElementById('tokenAmount').value;
-                  const walletAddress = currentWallet || '0x742d35Cc6634C0532925a3b8D4C9db96C4b4d8b6'; // Demo wallet
+                  const walletAddress = currentWallet || '0x742d35Cc6634C0532925a3b8D4C9db96C4b4d8b6'; 
                   
                   if (!amount || amount <= 0) {
                         alert('Please enter a valid amount');
@@ -489,89 +488,69 @@
                         .then(response => response.json())
                         .then(data => {
                               const container = document.getElementById('donation-options');
-                              
-                              // First, get current credits balance
+                              if (!container) return;
+
+                              // Try to get credits, but render UI regardless
                               fetch(`/api/balance/${currentWallet || '0x742d35Cc6634C0532925a3b8D4C9db96C4b4d8b6'}`)
-                                    .then(balanceResponse => balanceResponse.json())
+                                    .then(r => r.json())
                                     .then(balanceData => {
-                                          if (balanceData.success && balanceData.credits_balance > 0) {
-                                                let html = `
-                                                      <div class="alert alert-info mb-3">
-                                                            <strong>💰 Donation Credits Available:</strong> ${balanceData.credits_balance} credits
-                                                      </div>
-                                                `;
-                                                
-                                                html += `
-                                                      <div class="row">
-                                                            <div class="col-md-6">
-                                                                  <div class="form-group">
-                                                                        <label for="ngoSelect">
-                                                                              <img src="https://img.icons8.com/color/16/000000/organization.png" alt="NGO" style="margin-right: 5px;">
-                                                                              Select NGO:
-                                                                        </label>
-                                                                        <select id="ngoSelect" class="form-control">
-                                                                              <option value="">Choose an NGO...</option>
-                                                `;
-                                                
-                                                data.ngos.forEach(ngo => {
-                                                      html += `<option value="${ngo.address}">${ngo.name} (${ngo.address})</option>`;
-                                                });
-                                                
-                                                html += `
-                                                                        </select>
-                                                                  </div>
-                                                            </div>
-                                                            <div class="col-md-6">
-                                                                  <div class="form-group">
-                                                                        <label for="donationAmount">
-                                                                              <img src="https://img.icons8.com/color/16/000000/coins.png" alt="Amount" style="margin-right: 5px;">
-                                                                              Donation amount (credits):
-                                                                        </label>
-                                                                        <input type="number" id="donationAmount" class="form-control" value="1" min="1" max="${balanceData.credits_balance}">
-                                                                        <small class="text-muted">Available credits: ${balanceData.credits_balance}</small>
-                                                                  </div>
-                                                            </div>
-                                                      </div>
-                                                      <div class="row mt-3">
-                                                            <div class="col-12 text-end">
-                                                                  <button onclick="donateToNGO()" class="btn btn-donate">
-                                                                        <img src="https://img.icons8.com/color/16/000000/donate.png" alt="Donate" style="margin-right: 5px;">
-                                                                        Donate
-                                                                  </button>
-                                                            </div>
-                                                      </div>
-                                                `;
-                                                
-                                                container.innerHTML = html;
-                                          } else {
-                                                container.innerHTML = `
-                                                      <div class="text-center">
-                                                            <img src="https://img.icons8.com/color/48/000000/info.png" alt="Info" style="margin-bottom: 10px;">
-                                                            <p class="text-muted">No donation credits available. Convert your tokens first to enable donation options.</p>
-                                                      </div>
-                                                `;
-                                          }
+                                          const credits = balanceData && balanceData.success ? balanceData.credits_balance : 0;
+                                          renderDonationOptions(container, data.ngos, credits);
                                     })
-                                    .catch(error => {
-                                          console.error('Error loading balance:', error);
-                                          container.innerHTML = `
-                                                <div class="text-center">
-                                                      <img src="https://img.icons8.com/color/48/000000/info.png" alt="Info" style="margin-bottom: 10px;">
-                                                      <p class="text-muted">Error loading balance. Please try again.</p>
-                                                </div>
-                                          `;
+                                    .catch(() => {
+                                          renderDonationOptions(container, data.ngos, 0);
                                     });
                         })
                         .catch(error => {
                               console.error('Error loading NGOs:', error);
                               const container = document.getElementById('donation-options');
-                              container.innerHTML = `
-                                    <div class="text-center">
-                                          <img src="https://img.icons8.com/color/48/000000/info.png" alt="Info" style="margin-bottom: 10px;">
-                                          <p class="text-muted">Error loading NGOs. Please try again.</p>
-                                    </div>
-                              `;
+                              if (container) {
+                                    container.innerHTML = `<div class="text-muted">Unable to load NGOs.</div>`;
+                              }
                         });
+            }
+
+            function renderDonationOptions(container, ngos, credits) {
+                  let html = `
+                        <div class="alert alert-info mb-3">
+                              <strong>💰 Donation Credits Available:</strong> ${credits} credits
+                        </div>
+                        <div class="row">
+                              <div class="col-md-6">
+                                    <div class="form-group">
+                                          <label for="ngoSelect">
+                                                <img src="https://img.icons8.com/color/16/000000/organization.png" alt="NGO" style="margin-right: 5px;">
+                                                Select NGO:
+                                          </label>
+                                          <select id="ngoSelect" class="form-control">
+                                                <option value="">Choose an NGO...</option>`;
+                  ngos.forEach(ngo => {
+                        html += `<option value="${ngo.address}">${ngo.name} (${ngo.address})</option>`;
+                  });
+                  html += `</select>
+                                    </div>
+                              </div>
+                              <div class="col-md-6">
+                                    <div class="form-group">
+                                          <label for="donationAmount">
+                                                <img src="https://img.icons8.com/color/16/000000/coins.png" alt="Amount" style="margin-right: 5px;">
+                                                Donation amount (credits):
+                                          </label>
+                                          <input type="number" id="donationAmount" class="form-control" value="1" min="1" ${credits > 0 ? `max="${credits}"` : ''}>
+                                          <small class="text-muted">Available credits: ${credits}</small>
+                                    </div>
+                              </div>
+                        </div>
+                        <div class="row mt-3">
+                              <div class="col-12 text-end">
+                                    <button onclick="donateToNGO()" class="btn btn-donate">
+                                          <img src="{{ url_for('static', filename='donation.png') }}" alt="Donation" style="margin-bottom: 10px;width: 25px;height: 25px;">     
+                                                
+                                          Donate
+                                    </button>
+                              </div>
+                        </div>`;
+                  container.innerHTML = html;
             }
 
             function donateToNGO() {
@@ -617,7 +596,7 @@
                   .then(response => response.json())
                   .then(data => {
                         if (data.success) {
-                              showSuccessMessage(`❤️ ${data.message} - Donation recorded on blockchain!`);
+                              showSuccessMessage(` ${data.message} - Donation recorded on blockchain!`);
                               
                               // Update donation section based on remaining credits
                               if (data.new_credits_balance > 0) {
@@ -655,6 +634,13 @@
                   checkWalletConnection();
             });
 
+            // Cross-tab sync: react to localStorage updates from other tabs
+            window.addEventListener('storage', function(event) {
+                  if (event.key === 'greenchain_wallet_address' || event.key === 'greenchain_connected' || event.key === null) {
+                        checkWalletConnection();
+                  }
+            });
+
             function checkWalletConnection() {
                   // Check if wallet is connected from localStorage
                   const savedWallet = localStorage.getItem('greenchain_wallet_address');
@@ -685,6 +671,12 @@
                         walletAddressShort.textContent = shortAddress;
                         walletAddressFull.textContent = walletAddress;
                   }
+
+                  // Reflect in page wallet info panel
+                  const walletInfoEl = document.getElementById('walletInfo');
+                  const walletAddressEl = document.getElementById('walletAddress');
+                  if (walletInfoEl) walletInfoEl.style.display = 'block';
+                  if (walletAddressEl) walletAddressEl.textContent = walletAddress;
             }
 
             function showLoginButton() {
@@ -695,6 +687,15 @@
                         walletStatus.style.display = 'none';
                         loginButton.style.display = 'block';
                   }
+                  const tokenBalanceEl = document.getElementById('token_balance');
+                  if (tokenBalanceEl) {
+                        tokenBalanceEl.textContent = 'Please connect wallet first';
+                  }
+                   // Keep donation section visible as requested
+                  const walletInfoEl = document.getElementById('walletInfo');
+                  const walletAddressEl = document.getElementById('walletAddress');
+                  if (walletInfoEl) walletInfoEl.style.display = 'none';
+                  if (walletAddressEl) walletAddressEl.textContent = '';
             }
 
             async function connectWallet() {

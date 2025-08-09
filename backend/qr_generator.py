@@ -45,18 +45,18 @@ def generate_test_qr_codes(count=5):
     return qr_codes
 
 if __name__ == "__main__":
-    print("🌱 Generating GreenChain Test QR Codes...")
+    print("Generating GreenChain Test QR Codes...")
     print("=" * 50)
     
     qr_codes = generate_test_qr_codes(5)
     
-    print("\n✅ QR Code Generation Complete!")
+    print("\nQR Code Generation Complete!")
     print(f"Generated {len(qr_codes)} test QR codes in the 'qr_codes' directory.")
     print("\nYou can now:")
     print("1. Open these QR code images on your phone")
     print("2. Scan them with the GreenChain app")
     print("3. Test the complete user flow")
     
-    print("\n📋 QR Code Texts (for manual testing):")
+    print("\nQR Code Texts (for manual testing):")
     for qr in qr_codes:
         print(f"  - {qr['text']}") 
