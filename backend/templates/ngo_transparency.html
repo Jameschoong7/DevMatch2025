@@ -96,7 +96,7 @@
                           </ul>
                     </div>
                     
-                    <!-- Login Button (shown when wallet not connected) -->
+                    <!-- Login Button -->
                     <div id="loginButton" class="nav-item">
                           <a class="nav-link" href="#" onclick="connectWallet()">
                                 <img src="{{ url_for('static', filename='user.png') }}" alt="Login" style="margin-right: 5px;width: 20px; height: 20px;">
@@ -144,7 +144,7 @@
                            
                         </div>
 
-                        <!-- Impact Metrics -->
+                        <!-- Info -->
                         <div class="row">
                             <div class="col-md-3">
                                 <div class="impact-metric">
@@ -357,7 +357,7 @@
             currentNGO = document.getElementById('ngoSelect').value;
             const ngo = ngoData[currentNGO];
             
-            // Update metrics
+            // Update info
             document.getElementById('totalCredits').textContent = ngo.totalCredits.toLocaleString();
             document.getElementById('creditsUsed').textContent = ngo.creditsUsed.toLocaleString();
             document.getElementById('projectsCompleted').textContent = ngo.projectsCompleted;
@@ -426,36 +426,19 @@
             });
         }
 
-        function updateCreditAllocationInfo(allocation) {
-            // This function can be used to display credit allocation information
-            // For now, we'll just log it or you can implement a visual display
-            console.log('Credit allocation:', allocation);
-        }
-
-        function updateMonthlyImpactInfo(totalCredits, creditsUsed) {
-            // This function can be used to display monthly impact information
-            // For now, we'll just log it or you can implement a visual display
-            console.log('Monthly impact:', { totalCredits, creditsUsed });
-        }
+        
 
         // Initialize dashboard
         document.addEventListener('DOMContentLoaded', function() {
             loadNGOData();
             
-            // Check wallet connection immediately
+            // Check wallet connection 
             checkWalletConnection();
             
-            // Add a small delay to ensure DOM elements are fully loaded and check again
-            setTimeout(async () => {
-                await checkWalletConnection();
-            }, 100);
-            
-            // Check wallet connection when page becomes visible (e.g., when switching tabs)
-            document.addEventListener('visibilitychange', function() {
-                if (!document.hidden) {
-                    setTimeout(async () => {
-                        await checkWalletConnection();
-                    }, 100);
+            // Cross-tab sync: update UI when localStorage changes in another tab
+            window.addEventListener('storage', function(event) {
+                if (event.key === 'greenchain_wallet_address' || event.key === 'greenchain_connected' || event.key === null) {
+                    checkWalletConnection();
                 }
             });
         });
@@ -470,43 +453,12 @@
                 updateWalletDisplay(savedWallet);
                 currentWallet = savedWallet;
             } else {
-                // Also check if MetaMask is connected but localStorage is not updated
-                if (typeof window.ethereum !== 'undefined') {
-                    try {
-                        await checkMetaMaskConnection();
-                    } catch (error) {
-                        console.error('Error checking MetaMask connection:', error);
-                        showLoginButton();
-                    }
-                } else {
-                    showLoginButton();
-                }
-            }
-        }
-
-        async function checkMetaMaskConnection() {
-            try {
-                // Check if MetaMask is already connected
-                const accounts = await window.ethereum.request({ method: "eth_accounts" });
-                if (accounts && accounts.length > 0) {
-                    const walletAddress = accounts[0];
-                    
-                    // Update localStorage
-                    localStorage.setItem('greenchain_wallet_address', walletAddress);
-                    localStorage.setItem('greenchain_connected', 'true');
-                    localStorage.setItem('greenchain_connection_time', Date.now().toString());
-                    
-                    // Update display
-                    updateWalletDisplay(walletAddress);
-                    currentWallet = walletAddress;
-                } else {
-                    showLoginButton();
-                }
-            } catch (error) {
-                console.error('Error checking MetaMask connection:', error);
+               
                 showLoginButton();
             }
         }
+
+    
 
         function updateWalletDisplay(walletAddress) {
             const walletStatus = document.getElementById('walletStatus');
@@ -533,6 +485,7 @@
                 walletStatus.style.display = 'none';
                 loginButton.style.display = 'block';
             }
+            
         }
 
         async function connectWallet() {

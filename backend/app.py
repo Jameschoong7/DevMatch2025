@@ -9,8 +9,8 @@ import os
 
 # Configure Flask to serve static files from src/ directory
 app = Flask(__name__, 
-           static_folder='../src',  # Point to src/ directory
-           static_url_path='/static')  # Keep the same URL path
+           static_folder='../src')  # Point to src/ directory
+     
 
 @app.route('/')
 def index():
@@ -47,7 +47,7 @@ def validate_qr():
         if not validate_qr_code(qr_code):
             return jsonify({'error': 'Invalid QR code format'}), 400
         
-        # Mint tokens to user's wallet (no usage tracking - allow multiple scans)
+        # Mint tokens to user's wallet 
         try:
             tx_hash = mint_tokens(wallet_address)
             new_balance = get_user_token_balance(wallet_address)
@@ -143,7 +143,7 @@ def get_balance(wallet_address):
 @app.route('/api/ngos', methods=['GET'])
 def get_ngos():
     """Get list of approved NGOs"""
-    # In production, this would come from the smart contract
+    
     ngos = [
         {'address': '0x1234567890123456789012345678901234567890', 'name': 'Eco Warriors'},
         {'address': '0x0987654321098765432109876543210987654321', 'name': 'Green Earth'},
