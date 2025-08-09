@@ -349,7 +349,7 @@ async function validateAndMintTokens(qrCode) {
                     <p><strong>New Balance:</strong> ${data.new_balance} tokens</p>
                     <p><strong>Transaction Hash:</strong> ${data.transaction_hash}</p>
                     <button onclick="resetScanner()" class="btn btn-primary">Scan Another QR Code</button>
-                    <a href="/donation" class="btn btn-success">Continue to Donation</a>
+                    
                     <p class="mt-2"><small class="text-success">♻️ Keep recycling! You can scan the same QR code again for more tokens.</small></p>
                 </div>`;
             }

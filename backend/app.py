@@ -28,6 +28,10 @@ def recycle():
 def donation():
      return render_template("donation.html")
 
+@app.route('/ngo-transparency')
+def ngo_transparency():
+     return render_template("ngo_transparency.html")
+
 @app.route('/api/validate-qr', methods=['POST'])
 def validate_qr():
     """Validate QR code and mint tokens if valid"""

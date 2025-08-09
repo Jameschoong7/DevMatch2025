@@ -1,0 +1,584 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>GreenChain - NGO Transparency Dashboard</title>
+    <script type="module" src="{{ url_for('static', filename='main.js') }}"></script>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.1.3/dist/css/bootstrap.min.css" rel="stylesheet">
+    <style>
+        body {
+            background: beige;
+            min-height: 100vh;
+        }
+        .navbar {
+            background: rgba(255,255,255,0.95) !important;
+            backdrop-filter: blur(10px);
+        }
+        .main-content {
+            padding-top: 80px;
+            min-height: calc(100vh - 80px);
+        }
+        .transparency-card {
+            background: white;
+            border-radius: 20px;
+            box-shadow: 0 15px 35px rgba(0,0,0,0.1);
+            padding: 30px;
+            margin: 20px 0;
+        }
+        .impact-metric {
+            background: linear-gradient(45deg, #4CAF50, #45a049);
+            color: white;
+            border-radius: 15px;
+            padding: 20px;
+            margin: 15px 0;
+            text-align: center;
+        }
+        .project-card {
+            background: #f8f9fa;
+            border-radius: 15px;
+            padding: 20px;
+            margin: 15px 0;
+            border-left: 4px solid green;
+        }
+        .status-badge {
+            padding: 5px 15px;
+            border-radius: 20px;
+            font-size: 12px;
+            font-weight: bold;
+        }
+        .status-active {
+            background: #d4edda;
+            color: #155724;
+        }
+        .status-completed {
+            background: #cce5ff;
+            color: #004085;
+        }
+        .status-pending {
+            background: #fff3cd;
+            color: #856404;
+        }
+        .text-info-card {
+            background: #f8f9fa;
+            border-radius: 15px;
+            padding: 20px;
+            margin: 15px 0;
+            border-left: 4px solid #28a745;
+        }
+    </style>
+</head>
+<body>
+    <!-- Navigation -->
+    <nav class="navbar navbar-expand-lg navbar-light fixed-top">
+        <div class="container">
+            <a class="navbar-brand" href="/">
+                <img src="{{ url_for('static', filename='greenchain.png') }}" alt="GreenChain" style="margin-right: 10px; width: 45px; height: 32px;">
+                GreenChain
+          </a>
+              <div class="navbar-nav ms-auto">
+                    <!-- Wallet Connection Status -->
+                    <div id="walletStatus" class="nav-item dropdown" style="display: none;">
+                          <a class="nav-link dropdown-toggle" href="#" id="walletDropdown" role="button" data-bs-toggle="dropdown" aria-expanded="false">
+                                <img src="https://img.icons8.com/color/20/000000/wallet.png" alt="Wallet" style="margin-right: 5px;">
+                                <span id="walletAddressShort">Connecting...</span>
+                          </a>
+                          <ul class="dropdown-menu" aria-labelledby="walletDropdown">
+                                <li><span class="dropdown-item-text">
+                                      <strong>Wallet:</strong><br>
+                                      <small id="walletAddressFull" class="text-muted"></small>
+                                </span></li>
+                                <li><hr class="dropdown-divider"></li>
+                                <li><a class="dropdown-item" href="#" onclick="disconnectWallet()">
+                                      <img src="{{ url_for('static', filename='logout.png') }}" alt="Logout" style="margin-right: 10px; width: 32px; height: 32px;">
+                                      Disconnect Wallet
+                                </a></li>
+                          </ul>
+                    </div>
+                    
+                    <!-- Login Button (shown when wallet not connected) -->
+                    <div id="loginButton" class="nav-item">
+                          <a class="nav-link" href="#" onclick="connectWallet()">
+                                <img src="https://img.icons8.com/color/20/000000/user.png" alt="Login" style="margin-right: 5px;">
+                                Connect Wallet
+                          </a>
+                    </div>
+                    
+                    <a class="nav-link active" href="/recycle">
+                          <img src="{{ url_for('static', filename='triangular-arrows-sign-for-recycle.png') }}" alt="Recycle" style="margin-right: 5px; width: 20px; height: 20px;">
+                          Recycle
+                    </a>
+                    <a class="nav-link" href="/donation">
+                          <img src="{{ url_for('static', filename='donation.png') }}" alt="Donation" style="margin-right: 5px;width: 20px;height: 20px;">
+                          Donation
+                    </a>
+                    <a class="nav-link" href="/ngo-transparency">
+                          <img src="{{ url_for('static', filename='transparency.png') }}" alt="Transparency" style="margin-right: 5px;width: 20px;height: 20px;">
+                          NGO Transparency
+                    </a>
+              </div>
+        </div>
+  </nav>
+
+    <div class="main-content">
+        <div class="container">
+            <div class="row justify-content-center">
+                <div class="col-lg-10">
+                    <div class="transparency-card">
+                        <div class="text-center mb-4">
+                            <h2>🌱 NGO Transparency Dashboard</h2>
+                            <p class="text-muted">Real-time transparency and impact tracking for all NGO activities</p>
+                            <span class="badge bg-success">🔗 Blockchain Verified</span>
+                        </div>
+
+                        <!-- NGO Selection -->
+                        <div class="row mb-4">
+                            <div class="col-md-6">
+                                <label for="ngoSelect" class="form-label">Select NGO:</label>
+                                <select id="ngoSelect" class="form-select" onchange="loadNGOData()">
+                                    <option value="eco-warriors">Eco Warriors</option>
+                                    <option value="green-earth">Green Earth</option>
+                                    <option value="clean-oceans">Clean Oceans</option>
+                                </select>
+                            </div>
+                           
+                        </div>
+
+                        <!-- Impact Metrics -->
+                        <div class="row">
+                            <div class="col-md-3">
+                                <div class="impact-metric">
+                                    <h4 id="totalCredits">1,500</h4>
+                                    <p>Total Credits Received</p>
+                                </div>
+                            </div>
+                            <div class="col-md-3">
+                                <div class="impact-metric">
+                                    <h4 id="creditsUsed">1,200</h4>
+                                    <p>Credits Used</p>
+                                </div>
+                            </div>
+                            <div class="col-md-3">
+                                <div class="impact-metric">
+                                    <h4 id="projectsCompleted">8</h4>
+                                    <p>Projects Completed</p>
+                                </div>
+                            </div>
+                            <div class="col-md-3">
+                                <div class="impact-metric">
+                                    <h4 id="peopleImpacted">2,500+</h4>
+                                    <p>People Impacted</p>
+                                </div>
+                            </div>
+                        </div>
+
+
+                        <!-- Projects -->
+                        <div class="row mt-4">
+                            <div class="col-12">
+                                <h5>Active Projects</h5>
+                                <div id="projectsList">
+                                    <!-- Projects will be loaded here -->
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Transaction History -->
+                        <div class="row mt-4">
+                            <div class="col-12">
+                                <h5>Recent Transactions</h5>
+                                <div class="table-responsive">
+                                    <table class="table table-striped">
+                                        <thead>
+                                            <tr>
+                                                <th>Date</th>
+                                                <th>Type</th>
+                                                <th>Amount</th>
+                                                <th>Description</th>
+                                                <th>Status</th>
+                                            </tr>
+                                        </thead>
+                                        <tbody id="transactionHistory">
+                                            <!-- Transactions will be loaded here -->
+                                        </tbody>
+                                    </table>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.1.3/dist/js/bootstrap.bundle.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/ethers@5.7.2/dist/ethers.umd.min.js"></script>
+    <script>
+        // Mock NGO data
+        let currentWallet = null;
+        
+        const ngoData = {
+            'eco-warriors': {
+                name: 'Eco Warriors',
+                address: '0xEcoWarriors1234567890abcdef1234567890abcdef',
+                totalCredits: 1500,
+                creditsUsed: 1200,
+                projectsCompleted: 8,
+                peopleImpacted: 2500,
+                creditAllocation: {
+                    programImplementation: 60,
+                    projectDevelopment: 25,
+                    administration: 15
+                },
+                projects: [
+                    {
+                        name: 'Community Recycling Initiative',
+                        description: 'Educational programs for local schools',
+                        creditsAllocated: 300,
+                        impact: '500+ students educated',
+                        status: 'Active',
+                        startDate: '2024-09-01',
+                        endDate: '2025-06-30'
+                    },
+                    {
+                        name: 'Beach Cleanup Program',
+                        description: 'Monthly beach cleanup events',
+                        creditsAllocated: 200,
+                        impact: '2 tons of waste collected',
+                        status: 'Completed',
+                        startDate: '2024-07-01',
+                        endDate: '2024-12-31'
+                    },
+                    {
+                        name: 'Urban Garden Project',
+                        description: 'Community gardens in urban areas',
+                        creditsAllocated: 400,
+                        impact: '3 community gardens established',
+                        status: 'Active',
+                        startDate: '2024-10-01',
+                        endDate: '2025-08-31'
+                    }
+                ],
+                transactions: [
+                    {
+                        date: '2025-01-07 15:30:00',
+                        type: 'Donation Received',
+                        amount: 150,
+                        description: 'From user 0x742d35Cc6...',
+                        status: 'Completed'
+                    },
+                    {
+                        date: '2025-01-06 14:20:00',
+                        type: 'Project Funding',
+                        amount: -200,
+                        description: 'Beach Cleanup Program',
+                        status: 'Completed'
+                    },
+                    {
+                        date: '2025-01-05 09:15:00',
+                        type: 'Donation Received',
+                        amount: 75,
+                        description: 'From user 0x8ba1f10955...',
+                        status: 'Completed'
+                    }
+                ]
+            },
+            'green-earth': {
+                name: 'Green Earth',
+                address: '0xGreenEarth1234567890abcdef1234567890abcdef',
+                totalCredits: 2200,
+                creditsUsed: 1800,
+                projectsCompleted: 12,
+                peopleImpacted: 3800,
+                creditAllocation: {
+                    programImplementation: 65,
+                    projectDevelopment: 20,
+                    administration: 15
+                },
+                projects: [
+                    {
+                        name: 'Forest Conservation',
+                        description: 'Tree planting and forest protection',
+                        creditsAllocated: 500,
+                        impact: '1000+ trees planted',
+                        status: 'Active',
+                        startDate: '2024-08-01',
+                        endDate: '2025-07-31'
+                    }
+                ],
+                transactions: [
+                    {
+                        date: '2025-01-07 12:00:00',
+                        type: 'Donation Received',
+                        amount: 200,
+                        description: 'From user 0x1234567890...',
+                        status: 'Completed'
+                    }
+                ]
+            },
+            'clean-oceans': {
+                name: 'Clean Oceans',
+                address: '0xCleanOceans1234567890abcdef1234567890abcdef',
+                totalCredits: 800,
+                creditsUsed: 600,
+                projectsCompleted: 5,
+                peopleImpacted: 1200,
+                creditAllocation: {
+                    programImplementation: 70,
+                    projectDevelopment: 20,
+                    administration: 10
+                },
+                projects: [
+                    {
+                        name: 'Ocean Cleanup',
+                        description: 'Marine debris removal',
+                        creditsAllocated: 300,
+                        impact: '5 tons of marine debris removed',
+                        status: 'Active',
+                        startDate: '2024-11-01',
+                        endDate: '2025-10-31'
+                    }
+                ],
+                transactions: [
+                    {
+                        date: '2025-01-07 10:30:00',
+                        type: 'Donation Received',
+                        amount: 100,
+                        description: 'From user 0xabcdef1234...',
+                        status: 'Completed'
+                    }
+                ]
+            }
+        };
+
+        let currentNGO = 'eco-warriors';
+
+        function loadNGOData() {
+            currentNGO = document.getElementById('ngoSelect').value;
+            const ngo = ngoData[currentNGO];
+            
+            // Update metrics
+            document.getElementById('totalCredits').textContent = ngo.totalCredits.toLocaleString();
+            document.getElementById('creditsUsed').textContent = ngo.creditsUsed.toLocaleString();
+            document.getElementById('projectsCompleted').textContent = ngo.projectsCompleted;
+            document.getElementById('peopleImpacted').textContent = ngo.peopleImpacted.toLocaleString() + '+';
+            
+            // Update projects
+            updateProjects(ngo.projects);
+            
+            // Update transactions
+            updateTransactions(ngo.transactions);
+
+            // Update credit allocation info
+            updateCreditAllocationInfo(ngo.creditAllocation);
+            // Update monthly impact info
+            updateMonthlyImpactInfo(ngo.totalCredits, ngo.creditsUsed);
+        }
+
+        function updateProjects(projects) {
+            const projectsList = document.getElementById('projectsList');
+            projectsList.innerHTML = '';
+            
+            projects.forEach(project => {
+                const statusClass = project.status === 'Active' ? 'status-active' : 
+                                  project.status === 'Completed' ? 'status-completed' : 'status-pending';
+                
+                projectsList.innerHTML += `
+                    <div class="project-card">
+                        <div class="row">
+                            <div class="col-md-8">
+                                <h6>${project.name}</h6>
+                                <p class="text-muted">${project.description}</p>
+                                <small><strong>Impact:</strong> ${project.impact}</small>
+                            </div>
+                            <div class="col-md-4 text-end">
+                                <div class="mb-2">
+                                    <span class="status-badge ${statusClass}">${project.status}</span>
+                                </div>
+                                <div class="text-muted">
+                                    <small><strong>Credits:</strong> ${project.creditsAllocated}</small><br>
+                                    <small><strong>Duration:</strong> ${project.startDate} to ${project.endDate}</small>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                `;
+            });
+        }
+
+        function updateTransactions(transactions) {
+            const transactionHistory = document.getElementById('transactionHistory');
+            transactionHistory.innerHTML = '';
+            
+            transactions.forEach(tx => {
+                const amountClass = tx.amount > 0 ? 'text-success' : 'text-danger';
+                const amountPrefix = tx.amount > 0 ? '+' : '';
+                
+                transactionHistory.innerHTML += `
+                    <tr>
+                        <td>${tx.date}</td>
+                        <td>${tx.type}</td>
+                        <td class="${amountClass}">${amountPrefix}${tx.amount}</td>
+                        <td>${tx.description}</td>
+                        <td><span class="badge bg-success">${tx.status}</span></td>
+                    </tr>
+                `;
+            });
+        }
+
+        function updateCreditAllocationInfo(allocation) {
+            // This function can be used to display credit allocation information
+            // For now, we'll just log it or you can implement a visual display
+            console.log('Credit allocation:', allocation);
+        }
+
+        function updateMonthlyImpactInfo(totalCredits, creditsUsed) {
+            // This function can be used to display monthly impact information
+            // For now, we'll just log it or you can implement a visual display
+            console.log('Monthly impact:', { totalCredits, creditsUsed });
+        }
+
+        // Initialize dashboard
+        document.addEventListener('DOMContentLoaded', function() {
+            loadNGOData();
+            
+            // Check wallet connection immediately
+            checkWalletConnection();
+            
+            // Add a small delay to ensure DOM elements are fully loaded and check again
+            setTimeout(async () => {
+                await checkWalletConnection();
+            }, 100);
+            
+            // Check wallet connection when page becomes visible (e.g., when switching tabs)
+            document.addEventListener('visibilitychange', function() {
+                if (!document.hidden) {
+                    setTimeout(async () => {
+                        await checkWalletConnection();
+                    }, 100);
+                }
+            });
+        });
+
+        // Wallet connection functions
+        async function checkWalletConnection() {
+            // Check if wallet is connected from localStorage
+            const savedWallet = localStorage.getItem('greenchain_wallet_address');
+            const isConnected = localStorage.getItem('greenchain_connected') === 'true';
+            
+            if (isConnected && savedWallet) {
+                updateWalletDisplay(savedWallet);
+                currentWallet = savedWallet;
+            } else {
+                // Also check if MetaMask is connected but localStorage is not updated
+                if (typeof window.ethereum !== 'undefined') {
+                    try {
+                        await checkMetaMaskConnection();
+                    } catch (error) {
+                        console.error('Error checking MetaMask connection:', error);
+                        showLoginButton();
+                    }
+                } else {
+                    showLoginButton();
+                }
+            }
+        }
+
+        async function checkMetaMaskConnection() {
+            try {
+                // Check if MetaMask is already connected
+                const accounts = await window.ethereum.request({ method: "eth_accounts" });
+                if (accounts && accounts.length > 0) {
+                    const walletAddress = accounts[0];
+                    
+                    // Update localStorage
+                    localStorage.setItem('greenchain_wallet_address', walletAddress);
+                    localStorage.setItem('greenchain_connected', 'true');
+                    localStorage.setItem('greenchain_connection_time', Date.now().toString());
+                    
+                    // Update display
+                    updateWalletDisplay(walletAddress);
+                    currentWallet = walletAddress;
+                } else {
+                    showLoginButton();
+                }
+            } catch (error) {
+                console.error('Error checking MetaMask connection:', error);
+                showLoginButton();
+            }
+        }
+
+        function updateWalletDisplay(walletAddress) {
+            const walletStatus = document.getElementById('walletStatus');
+            const loginButton = document.getElementById('loginButton');
+            const walletAddressShort = document.getElementById('walletAddressShort');
+            const walletAddressFull = document.getElementById('walletAddressFull');
+            
+            if (walletStatus && loginButton) {
+                walletStatus.style.display = 'block';
+                loginButton.style.display = 'none';
+                
+                // Display shortened wallet address
+                const shortAddress = walletAddress.substring(0, 6) + '...' + walletAddress.substring(walletAddress.length - 4);
+                walletAddressShort.textContent = shortAddress;
+                walletAddressFull.textContent = walletAddress;
+            }
+        }
+
+        function showLoginButton() {
+            const walletStatus = document.getElementById('walletStatus');
+            const loginButton = document.getElementById('loginButton');
+            
+            if (walletStatus && loginButton) {
+                walletStatus.style.display = 'none';
+                loginButton.style.display = 'block';
+            }
+        }
+
+        async function connectWallet() {
+            if (typeof window.ethereum === 'undefined') {
+                alert("Please install Metamask from https://metamask.io/");
+                return;
+            }
+
+            try {
+                // Request account access
+                await window.ethereum.request({ method: "eth_requestAccounts" });
+                
+                const provider = new ethers.providers.Web3Provider(window.ethereum);
+                const signer = provider.getSigner();
+                const walletAddress = await signer.getAddress();
+                
+                // Save wallet connection to localStorage
+                localStorage.setItem('greenchain_wallet_address', walletAddress);
+                localStorage.setItem('greenchain_connected', 'true');
+                localStorage.setItem('greenchain_connection_time', Date.now().toString());
+                
+                // Update display and set current wallet
+                updateWalletDisplay(walletAddress);
+                currentWallet = walletAddress;
+                
+            } catch (error) {
+                console.error("Connection error:", error);
+                alert("Failed to connect wallet");
+            }
+        }
+
+        function disconnectWallet() {
+            // Clear wallet connection from localStorage
+            localStorage.removeItem('greenchain_wallet_address');
+            localStorage.removeItem('greenchain_connected');
+            localStorage.removeItem('greenchain_connection_time');
+            
+            // Update display
+            showLoginButton();
+            
+            // Clear current wallet
+            currentWallet = null;
+            
+            // Reload page to clear any wallet-dependent data
+            location.reload();
+        }
+    </script>
+</body>
+</html>
