@@ -14,6 +14,7 @@
                   padding: 100px 0;
                   text-align: center;
                   color: black;
+                  font-weight:bold;
             }
             .feature-card {
                   background: white;
@@ -133,7 +134,7 @@
                         <!-- Login Button (shown when wallet not connected) -->
                         <div id="loginButton" class="nav-item">
                               <a class="nav-link" href="#" onclick="connectWallet()">
-                                    <img src="https://img.icons8.com/color/20/000000/user.png" alt="Login" style="margin-right: 5px;">
+                                    <img src="{{ url_for('static', filename='user.png') }}" alt="Login" style="margin-right: 5px;width: 20px; height: 20px;">
                                     Connect Wallet
                               </a>
                         </div>
@@ -160,7 +161,7 @@
                   <div class="row justify-content-center">
                         <div class="col-lg-8">
                               <img src="{{ url_for('static', filename='greenchain.png') }}" alt="GreenChain Logo" style="margin-bottom: 30px; width: 150px; height: 120px;">
-                              <h1 class="display-4 mb-4">Welcome to GreenChain</h1>
+                              <h1 class="display-3 mb-4">Welcome to GreenChain</h1>
                               <p class="lead mb-5">Recycle, Earn Tokens, Donate to NGOs - Make the world greener, one recycle at a time!</p>
                               
                               <div class="mb-5">
@@ -180,7 +181,7 @@
             <div class="row">
                   <div class="col-lg-4">
                         <div class="feature-card">
-                              <img src="https://img.icons8.com/color/64/000000/user.png" alt="Login" style="margin-bottom: 20px;">
+                               <img src="{{ url_for('static', filename='user.png') }}" alt="Recycle" style="margin-bottom: 20px; width: 64px; height: 64px;">
                               <h4>Step 1: Connect Wallet</h4>
                               <p class="text-muted">Connect your MetaMask wallet to start your recycling journey</p>
                              
@@ -211,7 +212,7 @@
                   <div class="col-12">
                         <div class="feature-card">
                               <h3 class="mb-4">
-                                    <img src="https://img.icons8.com/color/32/000000/info.png" alt="Info" style="margin-right: 10px;">
+                                    
                                     How It Works
                               </h3>
                               <div class="row">
@@ -255,7 +256,7 @@
                               <div class="d-flex justify-content-between align-items-center mb-4">
                                     <h3>
                                           <img src="https://img.icons8.com/color/32/000000/blockchain-new-logo.png" alt="Blockchain" style="margin-right: 10px;">
-                                           Blockchain Transparency
+                                           Transaction History
                                     </h3>
                                     <span class="blockchain-badge">Sepolia Testnet</span>
                               </div>
@@ -291,7 +292,7 @@
                               <!-- Live Transaction History -->
                               <h4 class="mb-3">
                                     <img src="https://img.icons8.com/color/24/000000/transaction-list.png" alt="Transactions" style="margin-right: 10px;">
-                                    📊 Live Transaction History
+                                     Live Transaction History
                               </h4>
                               
                               
